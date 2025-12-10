@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <title>Space Shooter – Mobile</title>
+    <link rel="stylesheet" href="style.mobile.css" />
+  </head>
+  <body>
+    <!-- ===== Game Layer ===== -->
+    <div id="game">
+      <canvas id="gameCanvas"></canvas>
+
+      <!-- ===== HUD (atas) ===== -->
+      <div class="hud">
+        <div class="hud-left">
+          <span class="label">Skor</span>
+          <span id="score">0</span>
+          <span class="label">Level</span>
+          <span id="level">1</span>
+        </div>
+        <div class="hud-right">
+          <div class="bar">
+            <div id="hpFill" class="bar-fill"></div>
+          </div>
+          <div id="hpText">HP 100/100</div>
+          <!-- (Opsional) Consumables Dock -->
+          <div class="cons-dock" id="consDock" style="display: none"></div>
+        </div>
+      </div>
+
+      <!-- ===== Overlay: Menu ===== -->
+      <div id="menuOverlay" class="overlay show">
+        <div class="overlay-card">
+          <h1>SPACE SHOOTER</h1>
+          <div class="menu-header">
+            <div id="menuCoins" class="coins-badge" style="margin: auto">
+              🪙 0
+            </div>
+          </div>
+          <div class="goals">
+            🎯 <b>Goal:</b> Jangan biarkan <b>satupun</b> musuh lolos ke bawah
+            layar. <br />
+            👾 <b>Boss:</b> Arc Overlord di <b>5, 15, 25, …</b>; Chrono Titan di
+            <b>10, 20, 30, …</b> <br />
+            🧪 <b>Draft Kartu:</b> Setiap <b>2 level</b> pilih/upgrade 1 kartu
+            (maks Lv 3).
+          </div>
+          <div class="menu-buttons">
+            <button id="playBtn" class="btn primary">Play</button>
+            <button id="indexBtn" class="btn">Index Book</button>
+            <button id="shopBtn" class="btn">Shop</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Overlay: Index Book ===== -->
+      <div id="indexOverlay" class="overlay hidden">
+        <div class="overlay-card">
+          <h1>INDEX BOOK</h1>
+          <div class="menu-header">
+            <button id="indexClose" class="btn btn-small">Tutup</button>
+          </div>
+          <div class="index-content">
+            <!-- Diisi dinamis oleh script -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Overlay: Shop ===== -->
+      <div id="shopOverlay" class="overlay hidden">
+        <div class="overlay-card">
+          <h1>SHOP</h1>
+          <div class="menu-header">
+            <div id="shopCoins" class="coins-badge">🪙 0</div>
+            <button id="shopClose" class="btn btn-small">Tutup</button>
+          </div>
+
+          <!-- Tabs (static) -->
+          <div id="shopTabs" class="shop-tabs">
+            <button id="tabPendants" class="shop-tab active">Pendants</button>
+            <button id="tabWeapons" class="shop-tab">Weapons</button>
+          </div>
+
+          <!-- Grid (diisi dinamis) -->
+          <div id="shopGrid" class="shop-grid"></div>
+        </div>
+      </div>
+
+      <!-- ===== Overlay: Game Over ===== -->
+      <div id="gameOverOverlay" class="overlay hidden">
+        <div class="overlay-card">
+          <h1>GAME OVER</h1>
+          <div class="sub" id="gameOverReason">Kapal hancur!</div>
+          <div class="sub" id="gameOverStats">
+            Skor: <b>0</b> · Level: <b>1</b> · Boss Kill: <b>0</b>
+          </div>
+          <div class="menu-header">
+            <div id="gameOverCoins" class="coins-badge" style="margin: auto">
+              🪙 +0 coins
+            </div>
+          </div>
+          <div class="menu-buttons">
+            <button id="retryBtn" class="btn primary">Play Again</button>
+            <button id="goShopBtn" class="btn">Go to Shop</button>
+            <button id="goMenuBtn" class="btn">Menu</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Hidden SVG Icons (sprite) untuk pendants ===== -->
+    <!-- Penting: ID harus 'icon-${p.id}' sesuai pemanggilan JS -->
+    <svg
+      width="0"
+      height="0"
+      style="position: absolute; left: -9999px; visibility: hidden"
+      aria-hidden="true"
+    >
+      <symbol id="icon-pendant_fleet" viewBox="0 0 24 24">
+        <polygon points="3,14 21,10 12,21" fill="currentColor"></polygon>
+      </symbol>
+      <symbol id="icon-pendant_vitalis" viewBox="0 0 24 24">
+        <path
+          d="M12 21s-6-3.5-8.5-6.5A5.7 5.7 0 0 1 12 4a5.7 5.7 0 0 1 8.5 10.5C18 17.5 12 21 12 21z"
+          fill="currentColor"
+        ></path>
+      </symbol>
+      <symbol id="icon-pendant_precision" viewBox="0 0 24 24">
+        <circle
+          cx="12"
+          cy="12"
+          r="9"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        ></circle>
+        <circle cx="12" cy="12" r="3" fill="currentColor"></circle>
+      </symbol>
+      <symbol id="icon-pendant_zephyr" viewBox="0 0 24 24">
+        <path
+          d="M4 12h10a4 4 0 0 0 4-4M6 16h8a3 3 0 0 1 3-3"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        ></path>
+      </symbol>
+      <symbol id="icon-pendant_aegis" viewBox="0 0 24 24">
+        <path
+          d="M12 3l8 4v5c0 6-6 9-8 9s-8-3-8-9V7l8-4z"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        ></path>
+      </symbol>
+      <symbol id="icon-pendant_pierce" viewBox="0 0 24 24">
+        <path
+          d="M4 12h16M12 4l3 8-3 8-3-8 3-8z"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        ></path>
+      </symbol>
+      <symbol id="icon-pendant_photon" viewBox="0 0 24 24">
+        <path
+          d="M12 2l2.5 7.5L22 10l-6 4.5L17.5 22 12 18l-5.5 4 1.5-7.5L2 10l7.5-0.5L12 2z"
+          fill="currentColor"
+        ></path>
+      </symbol>
+      <symbol id="icon-pendant_focus" viewBox="0 0 24 24">
+        <circle
+          cx="12"
+          cy="12"
+          r="8"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        ></circle>
+        <circle
+          cx="12"
+          cy="12"
+          r="4"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        ></circle>
+      </symbol>
+      <symbol id="icon-pendant_regen" viewBox="0 0 24 24">
+        <path
+          d="M12 5v14M5 12h14"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        ></path>
+      </symbol>
+      <symbol id="icon-pendant_drone" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="3" fill="currentColor"></circle>
+        <circle cx="5" cy="5" r="2" fill="currentColor"></circle>
+        <circle cx="19" cy="5" r="2" fill="currentColor"></circle>
+        <circle cx="5" cy="19" r="2" fill="currentColor"></circle>
+        <circle cx="19" cy="19" r="2" fill="currentColor"></circle>
+      </symbol>
+      <symbol id="icon-pendant_voidflare" viewBox="0 0 24 24">
+        <path
+          d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z"
+          fill="currentColor"
+        ></path>
+      </symbol>
+      <symbol id="icon-pendant_gravwell" viewBox="0 0 24 24">
+        <path
+          d="M12 4a8 8 0 1 0 8 8M12 4a6 6 0 1 0 6 6"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        ></path>
+      </symbol>
+    </svg>
+
+    <!-- ===== Script ===== -->
+    <script src="script.mobile.js"></script>
+  </body>
+</html>
